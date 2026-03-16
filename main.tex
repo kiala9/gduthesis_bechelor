@@ -1,0 +1,59 @@
+% !TEX program  = xelatex
+% !TEX encoding = UTF-8 Unicode
+%
+% 毕业设计（论文）主文件
+% 编译：tectonic main.tex  或  xelatex → bibtex → xelatex × 2
+
+\documentclass{gdthesis}
+
+% ================================================================
+%  论文基本信息（仅修改此处）
+% ================================================================
+\ThesisTitle    {Title's here}
+% \ThesisTitleEn  {Thesis Title in English}
+\ThesisCollege  {College's here}
+\ThesisMajor    {Major's here}
+\ThesisYear     {2022}          % 入学年份
+\ThesisClass    {Your class number}             % 班别数字
+\ThesisStudentID{Your student ID}
+\ThesisAuthor   {Name}
+\ThesisSupervisor{Your tutor}
+\ThesisDate     {202X年\enspace X\enspace 月}
+
+% ================================================================
+%  文档结构
+% ================================================================
+\begin{document}
+
+%% --- 前置部分（不编页码）---
+\pagenumbering{gobble}
+
+\makecover                    % 封面
+\include{chapters/abstract_cn}         % 中文摘要
+\include{chapters/abstract_en}         % 英文摘要
+
+\clearpage
+\tableofcontents              % 目录
+\clearpage
+
+%% --- 正文（从绪论起编阿拉伯数字页码）---
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{chapters/chapter1}   % 第1章 绪论
+\include{chapters/chapter2}   % 第2章（示例）
+\include{chapters/chapter3} % 按需添加...
+
+\include{chapters/con} % 结论
+
+%% --- 参考文献 ---
+\printreferences
+
+%% --- 致谢 ---
+\include{chapters/acknowledgement}
+
+%% --- 附录 ---
+\startappendix
+\include{chapters/appendix}
+
+\end{document}

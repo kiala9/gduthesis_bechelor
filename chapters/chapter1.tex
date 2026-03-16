@@ -1,0 +1,29 @@
+\chapter{模板概述与快速开始}
+
+\section{模板用途}
+本模板面向本科毕业设计（论文）写作场景，目标是在不额外折腾版式细节的前提下，提供一套可直接填写内容的论文骨架。使用者通常只需要修改论文基本信息、替换章节正文、插入图片与参考文献，即可形成一份结构完整的论文草稿。
+
+\section{目录结构}
+建议优先关注以下几个位置：
+
+\begin{enumerate}
+\item `main.tex`：主文件，用于填写论文题目、学院、专业、学号、作者和指导教师等信息，并控制整篇文档的组织结构；
+\item `gdthesis.cls`：模板类文件，负责页边距、标题格式、目录样式、图表标题、正文行距等排版规则；
+\item `chapters/`：章节目录，用于放置摘要、正文、结论、致谢和附录等内容；
+\item `figures/`：图片目录，用于存放流程图、截图和论文插图；
+\item `references.bib`：参考文献数据库文件。
+\end{enumerate}
+
+\section{推荐使用流程}
+对于第一次接触本模板的同学，建议按以下顺序使用：
+
+\begin{enumerate}
+\item 打开 `main.tex`，先将论文题目、学院、专业、学号、姓名和指导教师修改为自己的信息；
+\item 保留主文件中的 `\textbackslash include` 结构，在 `chapters/` 目录中逐个替换摘要、正文、结论和附录内容；
+\item 将论文中需要使用的图片统一放入 `figures/` 目录；
+\item 将需要引用的文献条目写入 `references.bib`；
+\item 在内容基本完整后，再统一检查目录、图表编号、参考文献和页码是否正常。
+\end{enumerate}
+
+\section{不建议的做法}
+为了避免模板已有格式被意外覆盖，不建议在章节文件中频繁手动写入字号、行距或额外的垂直间距命令，例如 `\textbackslash zihao`、`\textbackslash setstretch`、`\textbackslash fontsize`、`\textbackslash vspace` 等。若确实需要局部特殊排版，建议先确认它不会影响正文的统一样式。

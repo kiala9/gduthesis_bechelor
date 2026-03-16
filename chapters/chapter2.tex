@@ -1,0 +1,21 @@
+\chapter{正文编写与常用内容组织}
+
+\section{章节内容的基本写法}
+正文部分建议按“章、节、子节”的层级逐步展开，而不要在一个文件中堆叠过多无层次的大段内容。通常情况下，研究背景、相关工作、系统设计、实现过程、实验或案例分析、结论与展望等内容，可以分别放入不同章节中。
+
+\section{图表与公式}
+图、表、公式是论文中最常见的结构化内容。模板已经对编号和题注样式进行了统一设置，因此使用时只需要采用标准 LaTeX 环境即可。对于图片，建议优先使用 PDF、PNG 或 JPG 等稳定格式；对于表格，建议优先使用 `tabularx` 或 `tabular` 环境，并尽量保持列数和版心宽度协调。
+
+\section{参考文献}
+参考文献统一通过 `.bib` 文件维护。若正文中需要引用某篇文献，可在 `references.bib` 中加入条目，并在正文里使用 `\textbackslash upcite\{...\}` 或 `\textbackslash inlinecite\{...\}`。建议在论文写作过程中同步维护文献条目，避免到定稿前集中补录而造成引用键混乱。
+
+\section{编译建议}
+建议使用 `XeLaTeX + BibTeX` 的方式进行编译。一个常见流程如下：
+
+\begin{enumerate}
+\item 第一次运行 `xelatex main.tex`，生成辅助文件；
+\item 运行 `bibtex main`，处理参考文献；
+\item 再连续运行两次 `xelatex main.tex`，刷新目录、交叉引用和页码。
+\end{enumerate}
+
+如果你使用的是 VS Code、TeXstudio 或 TeXworks，也建议优先选择 `XeLaTeX` 相关工作流，而不是直接切换为 `pdfLaTeX`。
