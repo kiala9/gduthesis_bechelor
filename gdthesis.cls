@@ -66,9 +66,9 @@
 ]
 % 中文字体：在 ctex 完成初始化后覆盖，保留 \songti \heiti 等命令
 \AtBeginDocument{
-  \setCJKmainfont{SimSun}[AutoFakeBold=2, AutoFakeSlant=0.2]
-  \setCJKsansfont{SimHei}[AutoFakeBold=2]
-  \setCJKmonofont{SimHei}
+  \setCJKmainfont{Source Han Serif CN}[AutoFakeBold=2, AutoFakeSlant=0.2]
+  \setCJKsansfont{Source Han Sans CN}[AutoFakeBold=2]
+  \setCJKmonofont{Source Han Sans CN}
 }
 
 % ================================================================
