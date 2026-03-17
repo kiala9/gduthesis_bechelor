@@ -402,7 +402,7 @@
     \vfill
     % 日期
     \begin{center}
-      {\zihao{3}\heiti \gdt@date}
+      {\zihao{3}\heiti \textbf{\gdt@date}}
     \end{center}
   \end{titlepage}%
 }
