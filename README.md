@@ -25,7 +25,6 @@ Template/latex/
 1. 复制 `Template/latex/` 到自己的论文目录。
 2. 修改 [main.tex](/home/kiala/linux_share/GDesign/Template/latex/main.tex) 顶部的论文信息。
 3. 在 `chapters/` 中填写各章节内容。
-4. 参考 [模板使用说明.md](/home/kiala/linux_share/GDesign/Template/latex/chapters/模板使用说明.md) 完成细节配置。
 
 ## 编译方式
 
@@ -45,3 +44,4 @@ xelatex main.tex
 - 这个模板已经按手册样张做过一轮校对，但仍建议在最终提交前自行逐页检查。
 - 如果只改论文内容，不建议随意修改 `gdthesis.cls`。
 - 如果发现格式问题，优先检查是否在章节文件里手动写了字号、行距或额外空行。
+- 确实存在问题的，欢迎提出Issue。
