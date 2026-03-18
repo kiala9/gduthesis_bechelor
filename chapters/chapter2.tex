@@ -6,6 +6,35 @@
 \section{图表与公式}
 图、表、公式是论文中最常见的结构化内容。模板已经对编号和题注样式进行了统一设置，因此使用时只需要采用标准 LaTeX 环境即可。对于图片，建议优先使用 PDF、PNG 或 JPG 等稳定格式；对于表格，建议优先使用 `tabularx` 或 `tabular` 环境，并尽量保持列数和版心宽度协调。
 
+下面给出一组最小图表样例，便于在模板中直接检查编号、题注和导出效果。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.18\linewidth]{figures/xiaohui.jpg}
+  \caption{模板内置图片示例}
+  \label{fig:template_demo}
+\end{figure}
+
+如图~\ref{fig:template_demo}所示，标准 `figure` 环境会自动生成图号与题注格式。
+
+\begin{table}[htbp]
+\centering
+\caption{模板内置表格示例}
+\label{tab:template_demo}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{0.78\linewidth}{>{\centering\arraybackslash}p{2.8cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+\toprule
+检查项 & PDF 编译 & Word 导出 \\
+\midrule
+章节编号 & 自动生成 & 自动保留 \\
+图表题注 & 统一样式 & 按 reference doc 修正 \\
+目录更新 & 编译后生成 & 打开 Word 后可更新 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+表~\ref{tab:template_demo}展示了模板在两条输出链路中的基础目标。
+
 \section{参考文献}
 参考文献统一通过 `.bib` 文件维护。若正文中需要引用某篇文献，可在 `references.bib` 中加入条目，并在正文里使用 `\textbackslash upcite\{...\}` 或 `\textbackslash inlinecite\{...\}`。建议在论文写作过程中同步维护文献条目，避免到定稿前集中补录而造成引用键混乱。
 

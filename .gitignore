@@ -1,24 +1,32 @@
 # LaTeX build artifacts
 *.aux
 *.bbl
-*.bcf
 *.blg
 *.fdb_latexmk
 *.fls
 *.log
-*.nav
 *.out
-*.run.xml
-*.snm
 *.synctex.gz
 *.toc
 *.xdv
+/main.pdf
 
-# Generated PDFs and temp outputs
-*.pdf
+# Pandoc / Word export outputs
+/pandoc_export.tex
+/thesis.docx
+
+# Temporary and backup files
+*~
+*.bak
+~$*.docx
+~$*.pdf
 
 # OS / editor files
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+
+# Python caches
+__pycache__/
+*.pyc
