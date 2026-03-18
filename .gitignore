@@ -14,6 +14,7 @@
 # Pandoc / Word export outputs
 /pandoc_export.tex
 /thesis.docx
+/RELEASE_v*.md
 
 # Temporary and backup files
 *~
