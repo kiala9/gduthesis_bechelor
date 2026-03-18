@@ -32,6 +32,69 @@ def extract_macro(text: str, name: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def build_cover(main_tex: str, thesis_dir: Path) -> str:
+    fields = {
+        "title": extract_macro(main_tex, "ThesisTitle"),
+        "college": extract_macro(main_tex, "ThesisCollege"),
+        "major": extract_macro(main_tex, "ThesisMajor"),
+        "year": extract_macro(main_tex, "ThesisYear"),
+        "class": extract_macro(main_tex, "ThesisClass"),
+        "student_id": extract_macro(main_tex, "ThesisStudentID"),
+        "author": extract_macro(main_tex, "ThesisAuthor"),
+        "supervisor": extract_macro(main_tex, "ThesisSupervisor"),
+        "date": extract_macro(main_tex, "ThesisDate"),
+    }
+
+    logo = ""
+    if (thesis_dir / "figures" / "xiaohui.jpg").exists():
+        logo = (
+            r"\begin{flushleft}"
+            "\n"
+            r"\includegraphics[width=2.2cm]{figures/xiaohui.jpg}"
+            "\n"
+            r"\end{flushleft}"
+        )
+
+    school_name = ""
+    if (thesis_dir / "figures" / "mingchen.jpg").exists():
+        school_name = (
+            r"\begin{center}"
+            "\n"
+            r"\includegraphics[width=10.56cm]{figures/mingchen.jpg}"
+            "\n"
+            r"\end{center}"
+        )
+
+    info_lines = [
+        (r"\textbf{学\quad 院：}", fields["college"]),
+        (r"\textbf{专\quad 业：}", fields["major"]),
+        (r"\textbf{年级班别：}", f"{fields['year']}级（{fields['class']}）班"),
+        (r"\textbf{学\quad 号：}", fields["student_id"]),
+        (r"\textbf{学生姓名：}", fields["author"]),
+        (r"\textbf{指导教师：}", fields["supervisor"]),
+    ]
+
+    parts = [
+        r"\begin{titlepage}",
+        logo,
+        school_name,
+        r"\vspace*{0.5cm}",
+        r"\begin{center}",
+        r"{\zihao{1}\heiti\bfseries 本科毕业设计（论文）\par}",
+        r"\vspace{1.2cm}",
+        rf"{{\zihao{{2}}\heiti\bfseries {fields['title']}\par}}",
+        r"\vspace{2cm}",
+        r"\begin{tabular}{@{}r l@{}}",
+        r" \\[0.8em] ".join(f"{label} & {value}" for label, value in info_lines) + r"\\",
+        r"\end{tabular}",
+        r"\vfill",
+        rf"{{\zihao{{3}}\heiti\bfseries {fields['date']}\par}}",
+        r"\end{center}",
+        r"\end{titlepage}",
+    ]
+    return "\n".join(part for part in parts if part)
+
+
 def parse_label_map(thesis_dir: Path) -> dict[str, str]:
     label_map: dict[str, str] = {}
     for aux_path in sorted(thesis_dir.glob("**/*.aux")):
@@ -103,18 +166,115 @@ def replace_refs_and_cites(text: str, label_map: dict[str, str], bib_map: dict[s
     return text
 
 
-def strip_tables(text: str, label_map: dict[str, str], bib_map: dict[str, int]) -> str:
+def simplify_column_spec(spec: str) -> str:
+    spec = re.sub(r">\{[^{}]*\}", "", spec)
+    spec = re.sub(r"<\{[^{}]*\}", "", spec)
+    spec = re.sub(r"p\{[^{}]*\}", "l", spec)
+    spec = re.sub(r"m\{[^{}]*\}", "l", spec)
+    spec = re.sub(r"b\{[^{}]*\}", "l", spec)
+    spec = spec.replace("X", "l")
+    spec = spec.replace("@{}", "")
+    spec = spec.replace("!", "")
+    spec = spec.replace(">", "")
+    spec = spec.replace("<", "")
+    spec = "".join(ch for ch in spec if ch in "lcr|")
+    return spec or "lll"
+
+
+def read_braced(text: str, start: int) -> tuple[str, int] | None:
+    if start >= len(text) or text[start] != "{":
+        return None
+    depth = 0
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start + 1 : idx], idx + 1
+    return None
+
+
+def extract_tabular_block(block: str) -> tuple[str, str, str] | None:
+    for env_name in ("tabularx", "tabular", "longtable"):
+        token = rf"\begin{{{env_name}}}"
+        start = block.find(token)
+        if start == -1:
+            continue
+
+        pos = start + len(token)
+        if env_name == "tabularx":
+            width_arg = read_braced(block, pos)
+            if not width_arg:
+                return None
+            _, pos = width_arg
+
+        spec_arg = read_braced(block, pos)
+        if not spec_arg:
+            return None
+        column_spec, pos = spec_arg
+
+        end_token = rf"\end{{{env_name}}}"
+        end = block.find(end_token, pos)
+        if end == -1:
+            return None
+
+        content = block[pos:end]
+        full_block = block[start : end + len(end_token)]
+        return full_block, column_spec, content
+    return None
+
+
+def fallback_table(block: str, label_map: dict[str, str], bib_map: dict[str, int]) -> str:
+    caption_match = re.search(r"\\caption\{(.*?)\}", block, re.S)
+    label_match = re.search(r"\\label\{([^}]*)\}", block)
+    caption = caption_match.group(1).strip() if caption_match else "表格"
+    caption = replace_refs_and_cites(caption, label_map, bib_map)
+    caption = latex_to_plain(caption)
+    label = label_match.group(1).strip() if label_match else ""
+    number = label_map.get(label, "")
+    prefix = f"表{number} " if number else "表 "
+    return f"\\begin{{center}}{prefix}{caption}（表格内容在 Word 导出中省略）\\end{{center}}"
+
+
+def normalize_tables(text: str, label_map: dict[str, str], bib_map: dict[str, int]) -> str:
     def repl_table(match: re.Match[str]) -> str:
         block = match.group(0)
         caption_match = re.search(r"\\caption\{(.*?)\}", block, re.S)
-        label_match = re.search(r"\\label\{([^}]*)\}", block)
-        caption = caption_match.group(1).strip() if caption_match else "表格"
-        caption = replace_refs_and_cites(caption, label_map, bib_map)
-        caption = latex_to_plain(caption)
-        label = label_match.group(1).strip() if label_match else ""
-        number = label_map.get(label, "")
-        prefix = f"表{number} " if number else "表 "
-        return f"\\begin{{center}}{prefix}{caption}（表格内容在 Word 导出中省略）\\end{{center}}"
+        caption = caption_match.group(1).strip() if caption_match else ""
+        if any(token in block for token in (r"\multirow", r"\multicolumn", r"\diagbox")):
+            return fallback_table(block, label_map, bib_map)
+
+        tabular_block = extract_tabular_block(block)
+        if not tabular_block:
+            return fallback_table(block, label_map, bib_map)
+        raw_tabular, column_spec, content = tabular_block
+        column_spec = simplify_column_spec(column_spec)
+        content = content.replace(r"\toprule", r"\hline")
+        content = content.replace(r"\midrule", r"\hline")
+        content = content.replace(r"\bottomrule", r"\hline")
+        content = re.sub(r"\\renewcommand\{\\arraystretch\}\{[^}]*\}", "", content)
+        content = re.sub(r"\\arraybackslash", "", content)
+        content = re.sub(r"\\centering", "", content)
+        content = re.sub(r">\{[^{}]*\}", "", content)
+        content = re.sub(r"<\{[^{}]*\}", "", content)
+        content = content.strip()
+
+        if any(token in content for token in (r"\resizebox", r"\rotatebox", r"\parbox")):
+            return fallback_table(block, label_map, bib_map)
+
+        if caption:
+            caption = replace_refs_and_cites(caption, label_map, bib_map)
+
+        parts = [r"\begin{table}[htbp]"]
+        if caption:
+            parts.append(rf"\caption{{{caption}}}")
+        parts.append(rf"\begin{{tabular}}{{{column_spec}}}")
+        parts.append(content)
+        parts.append(r"\end{tabular}")
+        parts.append(r"\end{table}")
+        return "\n".join(parts)
 
     table_patterns = [
         r"\\begin\{table\}(?:\[[^\]]*\])?.*?\\end\{table\}",
@@ -146,7 +306,7 @@ def resolve_graphics_paths(text: str, thesis_dir: Path) -> str:
 
 def clean_common(text: str, thesis_dir: Path, label_map: dict[str, str], bib_map: dict[str, int]) -> str:
     text = replace_refs_and_cites(text, label_map, bib_map)
-    text = strip_tables(text, label_map, bib_map)
+    text = normalize_tables(text, label_map, bib_map)
     text = resolve_graphics_paths(text, thesis_dir)
     replacements = {
         r"\enspace": " ",
@@ -284,7 +444,10 @@ def build_body(main_tex: str, thesis_dir: Path) -> str:
         stripped = line.strip()
         if not stripped or stripped.startswith("%"):
             continue
-        if stripped.startswith(r"\makecover") or stripped.startswith(r"\tableofcontents"):
+        if stripped.startswith(r"\makecover"):
+            parts.append(build_cover(main_tex, thesis_dir))
+            continue
+        if stripped.startswith(r"\tableofcontents"):
             continue
         if stripped.startswith(r"\include{"):
             include_name = re.search(r"\\include\{([^}]*)\}", stripped).group(1)
@@ -325,8 +488,8 @@ def main() -> None:
     output_path = args.output.resolve() if args.output else thesis_dir / "pandoc_export.tex"
 
     main_tex = main_path.read_text(encoding="utf-8")
-    title = extract_macro(main_tex, "ThesisTitle") or "Thesis Export"
-    author = extract_macro(main_tex, "ThesisAuthor")
+    title = ""
+    author = ""
     body = build_body(main_tex, thesis_dir)
 
     output = MAIN_TEMPLATE.format(title=title, author=author, body=body)
